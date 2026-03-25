@@ -4,30 +4,32 @@ import Student from "../models/Student.js"
 // Mark attendance
 export const markAttendance = async (req, res) => {
   try {
-    const { name } = req.body;
+    console.log("API HIT");              
+    console.log("BODY:", req.body);
+    const { name, rollNumber } = req.body;
+
+    console.log("Incoming:", name, rollNumber); // debug
 
     const student = await Student.findOne({
-      name,
-      rollNumber
+      name: { $regex: `^${name}$`, $options: "i" },
+      rollNumber: rollNumber
     });
 
     if (!student) {
-      return res.status(404).json({ message: "Student not found" });
+      return res.status(404).json({ message: "Student not found ❌" });
     }
 
-    student.attendance.status = "Present";
-    await student.save();
-
     student.attendance = {
-      date: new Date(),
-      status: "Present"
+      status: "Present",
+      time: new Date()
     };
 
     await student.save();
 
-    res.json({ message: "Attendance marked" });
+    res.json({ message: "Attendance marked ✅", student });
 
   } catch (err) {
+    console.error("Mark Error:", err);
     res.status(500).json({ error: err.message });
   }
 };

@@ -19,7 +19,7 @@ function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
         {/* 👨‍💼 ADMIN ONLY */}
-        {role === "admin" && (
+        
           <Link to="/AddStudent">
             <div className="bg-gray-800 p-6 rounded-2xl shadow-xl hover:scale-105 hover:bg-gray-700 transition duration-300">
               <FaUserPlus className="text-3xl text-green-400 mb-4" />
@@ -27,7 +27,7 @@ function Dashboard() {
               <p className="text-gray-400">Register new student with face data</p>
             </div>
           </Link>
-        )}
+        
 
         {/* 👨‍💼 + 👨‍🎓 BOTH */}
         {/* <Link to="/attendance">
@@ -39,7 +39,7 @@ function Dashboard() {
         </Link> */}
 
         {/* 👨‍💼 ADMIN ONLY */}
-        {role === "admin" && (
+        
           <Link to="/AttendanceReport">
             <div className="bg-gray-800 p-6 rounded-2xl shadow-xl hover:scale-105 hover:bg-gray-700 transition duration-300">
               <FaChartBar className="text-3xl text-yellow-400 mb-4" />
@@ -47,18 +47,18 @@ function Dashboard() {
               <p className="text-gray-400">View attendance records</p>
             </div>
           </Link>
-        )}
+        
 
         {/* 👨‍🎓 STUDENT ONLY */}
-        {role === "student" && (
-          <Link to="/">
+       
+          <Link to="/student">
             <div className="bg-gray-800 p-6 rounded-2xl shadow-xl hover:scale-105 hover:bg-gray-700 transition duration-300">
               <FaChartBar className="text-3xl text-green-400 mb-4" />
               <h2 className="text-xl font-semibold">Attendance</h2>
-              <p className="text-gray-400">View your records</p>
+              <p className="text-gray-400">Add Attendance</p>
             </div>
           </Link>
-        )}
+        
 
       </div>
 
@@ -67,6 +67,7 @@ function Dashboard() {
         <button
           onClick={() => {
             localStorage.removeItem("token");
+            localStorage.removeItem("role");
             window.location.href = "/login";
           }}
           className="flex items-center gap-2 bg-red-500 hover:bg-red-600 px-6 py-3 rounded-xl shadow-lg transition"

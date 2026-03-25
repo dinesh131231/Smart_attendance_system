@@ -51,19 +51,23 @@ const AddStudent = () => {
 
         setLoading(true); // ✅ start loading
         console.log({ name, rollNumber, images });
-        const token = localStorage.getItem("token");
 
         try {
+            const token = localStorage.getItem("token");
+
             const res = await fetch(`${PORT}/api/students`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization:`Bearer ${token}`
+                    Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({ name, images, rollNumber }), // ✅ send array
             });
 
             const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to add student");
+            }
 
             setMessage(data.message || "Student added");
 

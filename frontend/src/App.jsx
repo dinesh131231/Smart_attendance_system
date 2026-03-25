@@ -11,6 +11,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 
 function App() {
+  const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
 
@@ -18,16 +19,14 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={role === "student"
+        <Route path="/student" element={token && role === "student"
           ? <CaptureFace />
-          : role === "admin"
-            ? <Navigate to="/dashboard" />
             : <Navigate to="/login" />} />
-        <Route path="/AddStudent" element={<AddStudent />} />
-        <Route path="/AttendanceReport" element={role === "admin" ? <AttendanceReport /> : <Navigate to="/login" />} />
+        <Route path="/AddStudent" element={token && role === "admin" ? <AddStudent />:<Navigate to="/login" />} />
+        <Route path="/AttendanceReport" element={token && role === "admin" ? <AttendanceReport /> : <Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={role === "admin" ? <Dashboard /> : <Navigate to="/login" />} />
+        <Route path="/" element={<Dashboard /> } />
       </Routes>
 
     </>

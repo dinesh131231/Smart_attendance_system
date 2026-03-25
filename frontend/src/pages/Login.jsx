@@ -31,9 +31,13 @@ function Login() {
 
       if (res.data.role === "student") {
         navigate("/", { replace: true });
+      } else if (res.data.role === "admin") {
+        navigate("/", { replace: true });
       } else {
-        navigate("/dashboard", { replace: true });
+
+        navigate("/login", { replace: true });
       }
+      window.location.reload();
 
     } catch (err) {
       setMessage(err.response?.data?.message || "Login failed ❌");
@@ -84,6 +88,13 @@ function Login() {
               Register
             </Link>
           </p>
+          <div className="mt-4 flex justify-center">
+            <Link to="/">
+              <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">
+                ⬅️ Home
+              </button>
+            </Link>
+          </div>
 
         </form>
 

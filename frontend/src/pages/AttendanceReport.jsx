@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const PORT = import.meta.env.VITE_PORT || "http://localhost:3000";
 const API = `${PORT}/api/students`;
@@ -12,7 +13,14 @@ function AttendanceReport() {
 
   const fetchStudents = async () => {
     try {
-      const res = await axios.get(API);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(API, {
+
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+
+      });
       setStudents(res.data);
       setLastUpdated(new Date().toLocaleTimeString());
     } catch (err) {
@@ -22,7 +30,11 @@ function AttendanceReport() {
 
   useEffect(() => {
     fetchStudents();
-    const interval = setInterval(fetchStudents, 5000);
+    const interval = setInterval(async () => {
+      await students.updateMany({}, {
+        "attendance.status": "Absent"
+      });
+    }, 6 * 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -30,7 +42,12 @@ function AttendanceReport() {
   const clearAttendance = async () => {
     setClearing(true);
     try {
-      await axios.post(`${PORT}/api/attendance/clear`);
+      await axios.post(`${PORT}/api/attendance/clear`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
       await fetchStudents(); // ✅ fetch fresh data immediately after clear
       setConfirmClear(false);
     } catch (err) {
@@ -46,7 +63,12 @@ function AttendanceReport() {
   // delete function
   const deleteStudent = async (id) => {
     try {
-      await axios.delete(`${PORT}/api/students/${id}`);
+      await axios.delete(`${PORT}/api/students/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
       // 🔥 update UI instantly
       setStudents(prev => prev.filter(s => s._id !== id));
@@ -62,7 +84,12 @@ function AttendanceReport() {
     if (!window.confirm("⚠️ Delete ALL students?")) return;
 
     try {
-      await axios.delete(`${PORT}/api/students/delete-all`);
+      await axios.delete(`${PORT}/api/students/delete-all`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
       setStudents([]); // 🔥 clear UI instantly
 
@@ -76,6 +103,11 @@ function AttendanceReport() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+          <Link to="/">
+            <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl text-sm font-semibold transition">
+              🏠 Home
+            </button>
+          </Link>
           <div>
             <h1 className="text-4xl font-extrabold tracking-tight text-white">
               Attendance Report

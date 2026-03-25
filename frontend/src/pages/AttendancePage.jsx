@@ -311,181 +311,191 @@ function CaptureFace() {
       const data = res.data[0];
       setResult(data);
 
+      const token = localStorage.getItem("token");
       if (data && data.valid && data.label !== "Unknown") {
         const [name, roll] = data.label.split("_");
 
-        await axios.post(`${PORT}/api/attendance/mark`, 
-         { name,
-          rollNumber: roll,
-         },
+        await axios.post(`${PORT}/api/attendance/mark`,
+          {
+            name,
+            rollNumber: roll,
+          },
 
-        {headers: {
-          Authorization: `Bearer ${token}`
-        }
-      
-      });
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
 
-      alert(`Attendance marked for ${data.label} ✅`);
-      return;
+          });
 
-    } else if (retries > 0) {
-      setTimeout(() => {
-        captureImage();
-        sendImage(retries - 1);
-      }, 1500);
-    } else {
-      alert("Face not recognized ❌");
+        alert(`Attendance marked for ${data.label} ✅`);
+        return;
+
+      } else if (retries > 0) {
+        setTimeout(() => {
+          captureImage();
+          sendImage(retries - 1);
+        }, 1500);
+      } else {
+        alert("Face not recognized ❌");
+      }
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // const autoRecognize = () => {
+  //   captureImage();
+  //   sendImage(3);
+  // };
+  // 🛑 Stop camera
+  const stopCamera = () => {
+    const stream = videoRef.current.srcObject;
+
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
     }
 
-  } catch (err) {
-    console.error(err);
-  }
-};
+    videoRef.current.srcObject = null;
+  };
 
-// const autoRecognize = () => {
-//   captureImage();
-//   sendImage(3);
-// };
-// 🛑 Stop camera
-const stopCamera = () => {
-  const stream = videoRef.current.srcObject;
+  const drawBox = (data) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const video = videoRef.current;
 
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-  }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-  videoRef.current.srcObject = null;
-};
+    // draw video frame
+    ctx.drawImage(video, 0, 0);
 
-const drawBox = (data) => {
-  const canvas = canvasRef.current;
-  const ctx = canvas.getContext("2d");
-  const video = videoRef.current;
+    if (data && data.box) {
+      const { x, y, w, h } = data.box;
 
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+      // 🎨 color based on confidence
+      ctx.strokeStyle = data.valid ? "lime" : "red";
+      ctx.lineWidth = 3;
 
-  // draw video frame
-  ctx.drawImage(video, 0, 0);
+      ctx.strokeRect(x, y, w, h);
 
-  if (data && data.box) {
-    const { x, y, w, h } = data.box;
+      ctx.fillStyle = data.valid ? "lime" : "red";
+      ctx.font = "18px Arial";
 
-    // 🎨 color based on confidence
-    ctx.strokeStyle = data.valid ? "lime" : "red";
-    ctx.lineWidth = 3;
+      ctx.fillText(
+        `${data.label} (${data.confidence.toFixed(1)})`,
+        x,
+        y - 10
+      );
+    }
+  };
 
-    ctx.strokeRect(x, y, w, h);
-
-    ctx.fillStyle = data.valid ? "lime" : "red";
-    ctx.font = "18px Arial";
-
-    ctx.fillText(
-      `${data.label} (${data.confidence.toFixed(1)})`,
-      x,
-      y - 10
-    );
-  }
-};
-
-return (
-  <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white">
-    <div className="absolute top-5 right-5">
-      <button
-        onClick={handleLogout}
-        className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg shadow-lg"
-      >
-        Logout
-      </button>
-    </div>
-    <h1 className="text-3xl font-bold mb-6">
-      Smart Face Attendance
-    </h1>
-
-    <div className="bg-gray-800 p-6 rounded-xl shadow-lg flex flex-col items-center">
-
-      <div className="relative">
-
-        <video
-          ref={videoRef}
-          autoPlay
-          // playsInline
-          // muted
-          className="rounded-lg border-4 border-blue-500 w-[420px]"
-        />
-
-
-
-      </div>
-
-      <div className="flex gap-4 mt-6">
-
+  return (
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white">
+      <div className="absolute top-5 p-5 gap-4 flex right-5">
         <button
-          onClick={startCamera}
-          className="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg"
+          onClick={handleLogout}
+          className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg shadow-lg"
         >
-          Start Camera
-        </button>
-
-        <button
-          onClick={captureImage}
-          className="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg"
-        >
-          Capture
-        </button>
-
-        <button
-          onClick={sendImage}
-          className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg"
-        >
-          Recognize
+          Logout
         </button>
         <button
-          onClick={stopCamera}
-          className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg"
+          onClick={() => navigate("/")}
+          className="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded-lg"
         >
-          Stop Camera
+          Home
         </button>
 
       </div>
+      <h1 className="text-3xl font-bold mb-6">
+        Smart Face Attendance
+      </h1>
 
-      <canvas ref={canvasRef} className="hidden"></canvas>
+      <div className="bg-gray-800 p-6 rounded-xl shadow-lg flex flex-col items-center">
 
-      {image && (
-        <div className="mt-6 text-center">
-          <p className="mb-2 text-lg">Captured Image</p>
-          <img
-            src={image}
-            alt="captured"
-            className="w-60 rounded-lg border-2 border-gray-500"
+        <div className="relative">
+
+          <video
+            ref={videoRef}
+            autoPlay
+            // playsInline
+            // muted
+            className="rounded-lg border-4 border-blue-500 w-[420px]"
           />
+
+
+
         </div>
-      )}
 
-    </div>
-    {result && (
-      <div className="mt-6 bg-gray-800 p-4 rounded-lg text-center">
-        <h2 className="text-xl font-semibold mb-2">
-          Recognition Result
-        </h2>
+        <div className="flex gap-4 mt-6">
 
-        <p>
-          Name:{" "}
-          <span className="font-bold text-green-400">
-            {result.label}
-          </span>
-        </p>
+          <button
+            onClick={startCamera}
+            className="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg"
+          >
+            Start Camera
+          </button>
 
-        <p>
+          <button
+            onClick={captureImage}
+            className="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg"
+          >
+            Capture
+          </button>
+
+          <button
+            onClick={sendImage}
+            className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg"
+          >
+            Recognize
+          </button>
+          <button
+            onClick={stopCamera}
+            className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg"
+          >
+            Stop Camera
+          </button>
+
+        </div>
+
+        <canvas ref={canvasRef} className="hidden"></canvas>
+
+        {image && (
+          <div className="mt-6 text-center">
+            <p className="mb-2 text-lg">Captured Image</p>
+            <img
+              src={image}
+              alt="captured"
+              className="w-60 rounded-lg border-2 border-gray-500"
+            />
+          </div>
+        )}
+
+      </div>
+      {result && (
+        <div className="mt-6 bg-gray-800 p-4 rounded-lg text-center">
+          <h2 className="text-xl font-semibold mb-2">
+            Recognition Result
+          </h2>
+
+          <p>
+            Name:{" "}
+            <span className="font-bold text-green-400">
+              {result.label}
+            </span>
+          </p>
+
+          {/* <p>
           Confidence:{" "}
           <span className="text-blue-400">
             {result.confidence}
           </span>
-        </p>
-      </div>
-    )}
-  </div>
-);
+        </p> */}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default CaptureFace;

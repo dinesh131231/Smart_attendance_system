@@ -11,10 +11,10 @@ import allowRoles from "../middleware/roleMiddleware.js";
 const router = express.Router();
 
 // mark attendance
-router.post("/mark", ipRestriction, authMiddleware, allowRoles("student"),markAttendance);
+router.post("/mark",  authMiddleware, allowRoles("student"),markAttendance);
 
 // get attendance
-router.get("/", ipRestriction, getAttendance);
+router.get("/",  getAttendance);
 
 //clear attendance
 router.post("/clear", clearAttendance);

@@ -47,7 +47,7 @@ export const addStudent = async (req, res) => {
     await trainModel(name, rollNumber, images);
 
     res.status(201).json({
-      message: "Student added & model trained",
+      message: "Student added successfully",
       student,
     });
 
